@@ -60,6 +60,7 @@
             eidtColumns:[
                 {field: 'id',edit:'hidden'},
                 {field: 'ismenu',title: __('菜单'),edit: {form:'radio',value:'1'},searchList: {'1':__('是'),'0':__('否')}},
+                {field: 'isplatform',title: __('頂部系統'),visible:function(row){return row.ismenu=='1'},edit: {form:'radio',value:'0'},searchList: {'1':__('是'),'0':__('否')}},
                 {field: 'pid',title: __('父级'),edit:'slot',rules:'required'},
                 {field: 'title', title: __('名称'),visible:function(row){return row.ismenu=='1'},edit:'text'},
                 {field: 'controller', title: __('控制器'),edit:'text'},
