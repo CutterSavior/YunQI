@@ -22,17 +22,17 @@ return [
     'connections'     => [
         'mysql' => [
             // 数据库类型
-            'type'            => 'mysql',
+            'type'            => env('DB_TYPE', 'mysql'),
             // 服务器地址
-            'hostname'        => '127.0.0.1',
+            'hostname'        => env('DB_HOST', 'localhost'),
             // 数据库名
-            'database'        => 'yunqi',
+            'database'        => env('DB_NAME', 'yunqi'),
             // 用户名
-            'username'        => 'root',
+            'username'        => env('DB_USER', 'yunqi'),
             // 密码
-            'password'        => 'your_mysql_password_here',
+            'password'        => env('DB_PASS', 'Aa080808'),
             // 端口
-            'hostport'        => '3306',
+            'hostport'        => env('DB_PORT', '3306'),
             // 数据库连接参数
             'params'          => [],
             // 数据库编码默认采用utf8

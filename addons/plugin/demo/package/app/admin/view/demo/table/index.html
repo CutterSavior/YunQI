@@ -1,0 +1,267 @@
+<template>
+    <el-affix target="#app">
+        <el-card shadow="always">
+            <el-button-group>
+                <el-button type="success" @click="showCode">查看源代码</el-button>
+            </el-button-group>
+        </el-card>
+    </el-affix>
+    <el-card shadow="never" style="margin-top: 10px">
+        <el-tabs v-model="activeTab">
+            <el-tab-pane label="内置CRUD等功能" name="crud">
+                <!--可以通过auth控制功能是否展示，注意如果使用thinkphp模板变量来渲染时返回值只能是0或1-->
+                <yun-table
+                    :columns="indexColumns"
+                    toolbar="refresh,add,edit,del,recyclebin,more"
+                    search="username"
+                    sort-name="weigh,id"
+                    order="desc,desc"
+                    :show-summary="true"
+                    tabs="education"
+                    :auth="auth"
+                    :extend="extend">
+                    <template #expand="rows">
+                        <div style="padding: 15px">{{rows}}</div>
+                    </template>
+                </yun-table>
+            </el-tab-pane>
+            <el-tab-pane label="自定义toolbar" name="toolbar">
+                <yun-table
+                        :columns="indexColumns"
+                        toolbar="refresh,bar1,bar2,bar3"
+                        :common-search="false"
+                        sort-name="weigh,id"
+                        order="desc,desc"
+                        :auth="{
+                            edit:true,
+                            multi:true,
+                            del:true
+                        }"
+                        :extend="extend">
+                        <template #toolbar="{tool,selections}">
+                            <el-button type="primary" v-if="tool=='bar1'"><i class="fa fa-check"></i>&nbsp;按钮1</el-button>
+                            <el-button :disabled="selections.length==0" type="primary" v-if="tool=='bar2'"><i class="fa fa-remove"></i>&nbsp;按钮2</el-button>
+                            <el-dropdown  v-if="tool=='bar3'" trigger="click">
+                                <el-button type="warning" :disabled="selections.length==0"><i class="fa fa-cog"></i>&nbsp;按钮3</el-button>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item><i class="fa fa-search"></i> 下拉1</el-dropdown-item>
+                                        <el-dropdown-item><i class="fa fa-tablet"></i> 下拉2</el-dropdown-item>
+                                        <el-dropdown-item><i class="fa fa-safari"></i> 下拉3</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </template>
+                </yun-table>
+            </el-tab-pane>
+            <el-tab-pane label="表头自定义插槽" name="header">
+                <yun-table
+                        :columns="indexColumns"
+                        toolbar="refresh"
+                        :common-search="false"
+                        sort-name="weigh,id"
+                        order="desc,desc"
+                        :auth="{
+                            edit:true,
+                            multi:true,
+                            del:true
+                        }"
+                        :extend="extend">
+                        <template #header="{field}">
+                            <span v-if="field=='hobby'">
+                                  <i class="fa fa-low-vision"></i> 爱好长一点怕你看不到变化
+                            </span>
+                            <span v-if="field=='avatar'">
+                                  头像
+                                  <el-tooltip
+                                          effect="dark"
+                                          content="点击头像可以放大"
+                                          placement="top-start">
+                                      <i class="fa fa-info-circle"></i>
+                                  </el-tooltip>
+                            </span>
+                        </template>
+                </yun-table>
+            </el-tab-pane>
+            <el-tab-pane label="表格formatter用法" name="cell">
+                <yun-table
+                        :columns='slotColumns'
+                        toolbar="refresh"
+                        :common-search="false"
+                        :extend="extend">
+                        <template #formatter="{field,rows}">
+                            <span v-if="field=='description'">自定义插槽，{{rows.description}}</span>
+                        </template>
+                </yun-table>
+            </el-tab-pane>
+            <el-tab-pane label="自定义操作按钮" name="button">
+                <yun-table
+                        style="width: 800px"
+                        :columns='buttonColumns'
+                        toolbar="refresh"
+                        :common-search="false"
+                        :extend="extend">
+                </yun-table>
+            </el-tab-pane>
+            <el-tab-pane label="定义多级表头" name="multiheader">
+                <yun-table
+                        style="width: 100%"
+                        :columns='multiColumns'
+                        :common-search="false"
+                        toolbar="refresh"
+                        :extend="extend">
+                </yun-table>
+            </el-tab-pane>
+        </el-tabs>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    export default{
+        components:{
+            'YunTable':table
+        },
+        data:{
+            auth:{
+                add:Yunqi.auth.check('app\\admin\\controller\\demo\\Table','add'),
+                edit:Yunqi.auth.check('app\\admin\\controller\\demo\\Table','edit'),
+                del:Yunqi.auth.check('app\\admin\\controller\\demo\\Table','del'),
+                multi:Yunqi.auth.check('app\\admin\\controller\\demo\\Table','multi'),
+                import:Yunqi.auth.check('app\\admin\\controller\\demo\\Table','import'),
+                download:Yunqi.auth.check('app\\admin\\controller\\demo\\Table','download'),
+                recyclebin:Yunqi.auth.check('app\\admin\\controller\\demo\\Table','recyclebin')
+            },
+            extend:{
+                index_url: 'demo/table/index',
+                add_url: 'demo/table/add',
+                edit_url: 'demo/table/edit',
+                del_url: 'demo/table/del',
+                multi_url: 'demo/table/multi',
+                download_url: 'demo/table/download',
+                import_url: 'demo/table/import',
+                recyclebin_url:'demo/table/recyclebin'
+            },
+            activeTab:'crud',
+            indexColumns:[
+                {checkbox: true},
+                {field:"id",title:"ID",sortable:true,operate:false},
+                {field:"username",title:"姓名",operate:'like'},
+                {field:"avatar",title:"头像",operate:false,formatter:Yunqi.formatter.image},
+                {field:"description",title:"介绍",operate:false},
+                {field:"sex",title:"性别",operate:'select',searchList: {1:"男",2:"女"},formatter:Yunqi.formatter.select},
+                {field:"education",title:"学历",operate:false,searchList: Yunqi.data.education,formatter:Yunqi.formatter.select},
+                {field:"hobby",title:"爱好",operate:false,searchList: {read:"阅读",swim:"游泳",climb:"攀登",football:"足球",beauty:"美女"},formatter:Yunqi.formatter.tags},
+                {field:"weigh",title:"权重",sortable:true,operate: false},
+                {field:"status",title:"状态",operate:"select","searchList":{normal:"正常",hidden:"隐藏"},formatter:Yunqi.formatter.switch},
+                {field:"updatetime",title:"修改时间",operate:"daterange",visible:false,formatter:Yunqi.formatter.datetime},
+                {
+                    field: 'operate',
+                    title: __('操作'),
+                    fixed:'right',
+                    width:130,
+                    action:{
+                        sort:true,
+                        edit:true,
+                        del:true
+                    },
+                }
+            ],
+            slotColumns:[
+                {field:"id",title:"ID"},
+                //直接返回Yunqi.formatter对象，参考https://48rmn452q3.k.topthink.com/@48rmwkl52q/tongyongbiaoge-Table.html#3formatter%E6%B8%B2%E6%9F%93%E6%96%B9%E5%BC%8F
+                {field:"username",title:"姓名",formatter:Yunqi.formatter.tag},
+                //通过函数的返回值来渲染
+                {field:"avatar",title:"头像",formatter:function(data,row){
+                    if(row.id==1){
+                        //返回值可以是字符串，也可以是Yunqi.formatter对象,value为返回值
+                        let image=Yunqi.formatter.image;
+                        image.value=data;
+                        return image;
+                    }else if(row.id==2){
+                        let button=Yunqi.formatter.button;
+                        button.title='按钮标题';
+                        //根据条件使按钮不可用，button.disabled=true;
+                        //也支持methods里面的方法，button.click="methodsAction";
+                        button.click=function(row){
+                            Yunqi.alert(row.avatar);
+                        };
+                        return button
+                    }else{
+                        return '-'
+                    }
+                }},
+                //表格插槽
+                {field:"description",title:"介绍",width:300,formatter:Yunqi.formatter.slot}
+            ],
+            buttonColumns:[
+                {field:"id",title:"ID"},
+                {field:"username",title:"姓名",formatter:Yunqi.formatter.tag},
+                {
+                    field: 'operate',
+                    title: __('操作'),
+                    width:280,
+                    action:{
+                        //根据条件展示按钮
+                        edit:true,
+                        del:function(row){
+                            return row.id>1;
+                        },
+                        detail:{
+                            text:'按钮1',
+                            type:'warning',
+                            icon:'fa fa-eye',
+                            tooltip:true,
+                            method:function (row){
+                                Yunqi.alert(row.avatar);
+                            }
+                        },
+                        secends:{
+                            text:'按钮2',
+                            type:'success',
+                            icon:'fa fa-star',
+                            tooltip:false,
+                            method:'showDetail'
+                        }
+                    },
+                }
+            ],
+            multiColumns:[
+                {field:"id",title:"ID",width:60},
+                {title:'基本资料',children:[
+                    {field:"username",title:"姓名"},
+                    {field:"sex",title:"性别",searchList: {1:"男",2:"女"},formatter:Yunqi.formatter.select},
+                    {field:"avatar",title:"头像",formatter:Yunqi.formatter.image},
+                ]},
+                {title:'其他资料',children:[
+                    {title:'重要资料',children:[
+                        {field:"description",title:"介绍"},
+                        {field:"education",title:"学历",searchList: Yunqi.data.education,formatter:Yunqi.formatter.select},
+                        {field:"hobby",title:"爱好",searchList: {read:"阅读",swim:"游泳",climb:"攀登",football:"足球",beauty:"美女"},formatter:Yunqi.formatter.tags},
+                    ]},
+                    {title:'不重要资料',children:[
+                        {field:"weigh",title:"权重"},
+                        {field:"status",title:"状态","searchList":{normal:"正常",hidden:"隐藏"},formatter:Yunqi.formatter.switch},
+                    ]}
+                ]}
+            ]
+        },
+        methods: {
+            showDetail:function (row){
+                Yunqi.alert(row.avatar);
+            },
+            showCode:function (){
+                Yunqi.api.open({
+                    url:'demo/code/show?name=Table',
+                    title:'显示代码',
+                    icon:'fa fa-list',
+                    expand:true,
+                    close:()=>{
+                        this.activeTab='crud';
+                    }
+                });
+            }
+        }
+    }
+</script>
+<style>
+</style>

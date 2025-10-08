@@ -1,0 +1,362 @@
+<template>
+    <el-affix target="#app">
+        <el-card shadow="always">
+            <el-button-group>
+                <template v-if="activeTab=='add' || activeTab=='edit' || activeTab=='step'">
+                <el-button type="primary" @click="getFormItem">获取表单值</el-button>
+                <el-button type="primary" @click="setFormItem">设置表单值</el-button>
+                <el-button v-if="ishideform"  type="primary" @click="showFormItem">显示表单项</el-button>
+                <el-button v-else type="primary" @click="hideFormItem">隐藏表单项</el-button>
+                <el-button type="primary" @click="changeFormItem">修改表单属性</el-button>
+                </template>
+                <el-button type="success" @click="showCode">查看源代码</el-button>
+            </el-button-group>
+        </el-card>
+    </el-affix>
+    <el-card shadow="always" style="margin-top: 10px">
+        <el-tabs v-model="activeTab">
+            <el-tab-pane label="添加数据" name="add">
+                <!--action可以不用设置，则默认提交的地址为当前页面url-->
+                <yun-form ref="addform" :columns="columns" action="demo/form/add" @submit="onSubmit" @success="onSuccess" @fail="onFail">
+                    <template #default>
+                        {:token_field()}
+                    </template>
+                </yun-form>
+            </el-tab-pane>
+            <el-tab-pane label="修改数据" name="edit">
+                <yun-form ref="editform" :columns="columns" :data="rows" action="demo/form/edit?ids=1" @submit="onSubmit">
+                    <template #default>
+                        {:token_field()}
+                    </template>
+                </yun-form>
+            </el-tab-pane>
+            <el-tab-pane label="按步骤表单" name="step">
+                <yun-form ref="stepform" :columns="columns" :steps="steps" action="demo/form/add" @submit="onSubmit" @step="onStep">
+                    <template #default>
+                        {:token_field()}
+                    </template>
+                </yun-form>
+            </el-tab-pane>
+            <el-tab-pane label="Tabs表单" name="tabs">
+                <yun-form ref="tabsform" :columns="columns" :tabs="tabs" action="demo/form/add" @submit="onSubmit" @changeTabs="onChangeTabs">
+                    <template #default>
+                        {:token_field()}
+                    </template>
+                </yun-form>
+            </el-tab-pane>
+            <el-tab-pane label="自定义底部" name="footer">
+                <yun-form ref="footerform" :columns='[{field:"test",title:"测试",edit:"text"}]'>
+                    <template #default>
+                        {:token_field()}
+                    </template>
+                    <template #footer>
+                        <el-button type="primary" style="width: 100%">提交</el-button>
+                    </template>
+                </yun-form>
+            </el-tab-pane>
+            <el-tab-pane label="表单插槽" name="slot">
+                <yun-form @submit="onSubmit" :data='{test1:"在顶部自定义的表单项",test2:"通过json渲染的表单项",test3:"通过插槽自定义的表单项"}' :columns='[{field:"test2",title:"测试2",edit:"text"},{field:"test3",title:"测试3",edit:"slot"}]'>
+                    <template #default="{rows}">
+                        {:token_field()}
+                        <el-form-item label="测试1:">
+                            <el-input v-model="rows.test1"></el-input>
+                        </el-form-item>
+                    </template>
+                    <template #test3="{rows}">
+                        <el-form-item label="测试3:">
+                            <el-input v-model="rows.test3"></el-input>
+                        </el-form-item>
+                    </template>
+                </yun-form>
+            </el-tab-pane>
+            <el-tab-pane label="自定义name">
+                <yun-form action="demo/form/setname" :columns='[{field:"test1",title:"测试1",edit:{form:"input",type:"text",value:"默认的name为：row[test1]"}},{field:"test2",title:"测试2",edit:{form:"input",type:"text",name:"test2",value:"修改后的name为：test2"}}]'>
+                    <template #default>
+                        {:token_field()}
+                    </template>
+                </yun-form>
+            </el-tab-pane>
+            <el-tab-pane label="追加表单项" name="append">
+                <yun-form @submit="onSubmit" action="demo/form/appendname" :columns='[{field:"test1",title:"测试1",edit:{form:"input",type:"text",value:"已定义的表单项1"}},{field:"test2",edit:"hidden"},{field:"test3",edit:"hidden"}]'>
+                    <template #default>
+                        {:token_field()}
+                    </template>
+                </yun-form>
+            </el-tab-pane>
+            <el-tab-pane label="动态表单项" name="showhide">
+                <yun-form @submit="onSubmit" :columns='showhideColumns'>
+                    <template #default>
+                        {:token_field()}
+                        <el-form-item label="">
+                            <el-alert :closable="false" type="warning">请尝试选择下拉框</el-alert>
+                        </el-form-item>
+                    </template>
+                </yun-form>
+            </el-tab-pane>
+            <el-tab-pane label="富文本" name="editor">
+                <yun-form @submit="onSubmit" :columns='[{field:"test1",title:"测试1",edit:"editor"}]'>
+                    <template #default>
+                        {:token_field()}
+                    </template>
+                </yun-form>
+            </el-tab-pane>
+            <el-tab-pane label="关联表分页选择框" name="selectpage">
+                <yun-form @submit="onSubmit" :columns='[
+                    {field:"test1",title:"选择用户",edit:{form:"selectpage",url:"user/index/index",keyField:"id",labelField:"nickname"}},
+                    {field:"test2",title:"自定义",edit:{form:"selectpage",url:"demo/form/spages",keyField:"id",labelField:"username"}}
+                ]'>
+                    <template #default>
+                        {:token_field()}
+                    </template>
+                </yun-form>
+            </el-tab-pane>
+            <el-tab-pane label="多级树形选择框" name="cascader">
+                <yun-form @submit="onSubmit" :label-width="200" :columns='[
+                    {field:"test1",title:"选择城市",edit:"area"},
+                    {field:"test2",title:"选择分类",edit:"category"},
+                    {field:"test3",title:"动态加载",edit:{form:"cascader",url:"demo/form/cascader",level:2,lazy:true}},
+                    {field:"test4",title:"url静态加载",edit:{form:"cascader",placeholder:"通过url后端一次获取数据",url:"demo/form/cascader",laze:false}},
+                    {field:"test4",title:"options静态加载",edit:{form:"cascader",placeholder:"通过options定义数据",options:[{id:1,name:"混混",childlist:[{id:11,name:"张三"},{id:12,name:"李四"}]},],laze:false}},
+                ]'>
+                    <template #default>
+                        {:token_field()}
+                    </template>
+                </yun-form>
+            </el-tab-pane>
+            <el-tab-pane label="JSON选择框" name="json">
+                <yun-form @submit="onSubmit" :columns='[
+                    {field:"test1",title:"默认json",edit:"fieldlist"},
+                    {field:"test2",title:"json赋值",edit:{form:"fieldlist",value:{key1:"老大",key2:"老二"}}},
+                    {field:"test3",title:"json数组",edit:{form:"fieldlist",keys:["name","gender","age","score"],value:[{"name":"张三","gender":"男","age":"23","score":"80"}, {"name":"李四","gender":"男","age":"26","score":"90"}],label:["姓名","性别","年龄","分数"]}},
+                    {field:"test4",title:"json插槽",edit:{form:"slot",value:{name:"张三",sex:"男",age:"18",grade:"高级"}}},
+                    {field:"test5",title:"json数组插槽",edit:{form:"slot",value:[{"user_id":1,"gender":"男","age":"23","score":"80"}, {"user_id":2,"gender":"女","age":"26","score":"90"}]}},
+                ]'>
+                    <template #default>
+                        {:token_field()}
+                        <el-form-item label="">
+                            <el-alert :closable="false" type="warning" title="注意：">json表单提交后特殊字符会被转义，在PHP端需要使用htmlspecialchars_decode函数转换成正常字符串</el-alert>
+                        </el-form-item>
+                    </template>
+                    <template #test4="{rows}">
+                        <el-form-item label="json插槽:">
+                            <Fieldlist :value="rows.test4">
+                                <template #0="{list,row}">
+                                    <el-select v-model="list[row][0]" placeholder="请选择" style="width: 100%;">
+                                        <el-option label="姓名" value="name"></el-option>
+                                        <el-option label="性别" value="sex"></el-option>
+                                        <el-option label="年龄" value="age"></el-option>
+                                        <el-option label="班级" value="grade"></el-option>
+                                    </el-select>
+                                </template>
+                            </Fieldlist>
+                        </el-form-item>
+                    </template>
+                    <template #test5="{rows}">
+                        <el-form-item label="json数组插槽:">
+                            <Fieldlist :keys='["user_id","gender","age","score"]' :label='["姓名","性别","年龄","分数"]' :value="rows.test5">
+                                <template #user_id="{list,row}">
+                                    <el-select filterable placeholder="请选择学生" v-model="list[row].user_id" style="width: 100%;">
+                                        <el-option
+                                                v-for="item in students"
+                                                :key="item.id"
+                                                :label="item.name"
+                                                :value="item.id">
+                                        </el-option>
+                                    </el-select>
+                                </template>
+                                <template #gender="{list,row}">
+                                    <el-select filterable placeholder="请选择性别" v-model="list[row].gender" style="width: 100%;">
+                                        <el-option label="男" value="boy"></el-option>
+                                        <el-option label="女" value="girl"></el-option>
+                                        <el-option label="不男不女" value="太监"></el-option>
+                                    </el-select>
+                                </template>
+                            </Fieldlist>
+                        </el-form-item>
+                    </template>
+                </yun-form>
+            </el-tab-pane>
+        </el-tabs>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    import fieldlist from "@components/Fieldlist.js";
+    import {inArray} from "@util.js";
+    export default{
+        components:{
+            'YunForm':form,
+            'Fieldlist':fieldlist,
+        },
+        data:{
+            activeTab:'add',
+            ishideform:false,
+            columns:[
+                /*
+                 * edit有两种写法，包括object完整写法与string简写
+                 * 详细查看【https://48rmn452q3.k.topthink.com/@48rmwkl52q/tongyongbiaodan.html#4edit属性】
+                 * rules有4种写法，string简写，function函数，object对象，array数组
+                 * 详细查看【https://48rmn452q3.k.topthink.com/@48rmwkl52q/tongyongbiaodan.html#5rules写法】
+                 */
+                //step属性作用于分步骤表单,tab属性作用于tabs表单,都是从0开始计数
+                {"field":"id","title":"ID","edit":"hidden",step:0,tab:0},
+                {"field":"username","title":"姓名","edit":"text",rules:"required;length(2~10);chinaChar",step:0,tab:0},
+                {"field":"avatar","title":"头像","edit":"image",step:0,tab:0},
+                {"field":"user_id","title":"绑定用户","edit":{form:"selectpage",url:"user/index/index",keyField:"id",labelField:"nickname"},step:0,tab:0},
+                {"field":"entrytime","title":"入职日期","edit":"date",step:1,tab:1},
+                //通过edit的完整写法可以设置默认值
+                {"field":"hobby","title":"爱好","edit":{form:"checkbox",value:['read']},searchList: {read:"阅读",swim:"游泳",climb:"攀登",football:"足球",beauty:"美女"},step:1,tab:1},
+                //获取后台通过 $this->assign('level',DemoModel::LEVEL)传递的参数level
+                {"field":"sex","title":"性别","edit":{form:'radio',value:1},searchList: {1:'男',2:'女'},rules:"required",step:1,tab:1},
+                {"field":"education","title":"学历","edit":"select",searchList: Yunqi.data.education,rules:"required",step:1,tab:1},
+                {"field":"description","title":"介绍","edit":"textarea",step:2,tab:2},
+                {"field":"status","title":"状态","edit":"switch",searchList:{'normal':'正常','hidden':'隐藏'},step:2,tab:2},
+            ],
+            rows: {
+                id:1,
+                username:'张三',
+                user_id:1,
+                entrytime:'2023-12-01',
+                hobby:['football','read','swim','climb'],
+                sex:2,
+                education:2,
+                description:'简单介绍',
+                avatar:'/assets/img/avatar.jpg',
+            },
+            steps:['第一步','第二步','第三步'],
+            tabs:['第一栏','第二栏','第三栏'],
+            showhideColumns:[
+                {field:'select',title:'选择',edit:{form:'select',value:1},searchList:{1:'显示1',2:'显示2',3:'显示3'}},
+                {field:'line1',title:'选项一',edit:'text',visible:function (rows){return rows.select==1}},
+                {field:'line2',title:'选项二',edit:'text',visible:function (rows){return rows.select==2}},
+                {field:'line3',title:'选项三',edit:'text',visible:function (rows){return rows.select==3}}
+            ],
+            students:[
+                {id:1,name:'张三'},
+                {id:2,name:'李四'},
+                {id:3,name:'隔壁老王'},
+            ]
+        },
+        onLoad:{
+
+        },
+        methods: {
+            //提交时候触发，返回false则终止提交
+            onSubmit:function (rows){
+                console.log(rows);
+                let formname=this.activeTab+'form';
+                if(this.activeTab=='add' || this.activeTab=='edit' || this.activeTab=='step'){
+                    if(!inArray(rows.hobby,'beauty')){
+                        //手动定位错误
+                        this.$refs[formname].setError('hobby',rows.username+'爱好美女,请勾选美女');
+                        Yunqi.message.error(rows.username+'爱好美女,请勾选美女');
+                        return false;
+                    }
+                }
+                if(
+                    this.activeTab=='footer' ||
+                    this.activeTab=='slot' ||
+                    this.activeTab=='editor' ||
+                    this.activeTab=='showhide' ||
+                    this.activeTab=='json' ||
+                    this.activeTab=='cascader' ||
+                    this.activeTab=='selectpage'
+                ){
+                    return false;
+                }
+                if(this.activeTab=='append'){
+                    rows.test2='追加表单项2';
+                    rows.test3='追加表单项3';
+                }
+                return true;
+            },
+            //后台返回error时触发
+            onFail: function (){
+
+            },
+            //后台返回success时触发
+            onSuccess:function (){
+                //重置表单
+                this.$refs.addform.reset();
+            },
+            //点击上一步或下一步时触发
+            onStep:function (step){
+
+            },
+            //选择分组时触发
+            onChangeTabs:function (){
+
+            },
+            submit:function (){
+                this.$refs.footerform.submit();
+            },
+            //隐藏表单项目
+            hideFormItem:function (){
+                let formname=this.activeTab+'form';
+                //隐藏一项
+                this.$refs[formname].hideField('username');
+                //隐藏多项
+                this.$refs[formname].hideField(['avatar','user_id']);
+                this.ishideform=true;
+            },
+            //显示表单项目
+            showFormItem:function (){
+                let formname=this.activeTab+'form';
+                //显示一项
+                this.$refs[formname].showField('username');
+                //显示多项
+                this.$refs[formname].showField(['avatar','user_id']);
+                this.ishideform=false;
+            },
+            //获取表单项目
+            getFormItem:function (){
+                let formname=this.activeTab+'form';
+                let content='';
+                for(let key in this.rows){
+                    content+=key+'的值为：'+this.$refs[formname].getValue(key)+'<br>';
+                }
+                Yunqi.alert(content,'', {
+                    dangerouslyUseHTMLString: true,
+                });
+            },
+            //设置表单项目
+            setFormItem:function (){
+                let formname=this.activeTab+'form';
+                let username=this.$refs[formname].getValue('username');
+                if(username=='黑娃'){
+                    this.$refs[formname].setValue('username','老赵');
+                    this.$refs[formname].setValue('hobby',[]);
+                }else{
+                    this.$refs[formname].setValue('username','黑娃');
+                    this.$refs[formname].setValue('hobby',['football','read','swim','climb']);
+                }
+            },
+            //修改表单属性
+            changeFormItem:function (){
+                let formname=this.activeTab+'form';
+                let username=this.$refs[formname].getValue('username');
+                if(username=='黑娃'){
+                    this.$refs[formname].setField('username','title','姓名');
+                    this.$refs[formname].setField('username','edit',{form:'input',type:'text',value:''});
+                }else{
+                    this.$refs[formname].setField('username','title','用户昵称');
+                    this.$refs[formname].setField('username','edit',{form:'input',type:'text',value:'黑娃',readonly:true});
+                }
+            },
+            showCode:function (){
+                Yunqi.api.open({
+                    url:'demo/code/show?name=Form',
+                    title:'显示代码',
+                    icon:'fa fa-list',
+                    expand:true,
+                    close:()=>{
+                        this.activeTab='add';
+                    }
+                });
+            }
+        }
+    }
+</script>
+<style>
+
+</style>

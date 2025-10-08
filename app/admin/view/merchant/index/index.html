@@ -1,0 +1,35 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                toolbar="refresh"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    export default{
+        components:{'YunTable':table},
+        data:{
+            extend:{ index_url:'merchant/index/index' },
+            columns:[
+                {checkbox:true},
+                {field:'id',title:'ID',sortable:true,width:80},
+                {field:'merchant',title:'商家'},
+                {field:'merchant_no',title:'商家號'},
+                {field:'contact_name',title:'姓名'},
+                {field:'account',title:'帳號'},
+                {field:'gender',title:'性別'},
+                {field:'timeslot',title:'時段'},
+                {field:'avg_money',title:'平均金額'},
+                {field:'avg_speed',title:'平均速度'}
+            ]
+        }
+    }
+</script>
+<style>
+
+</style>
+
+

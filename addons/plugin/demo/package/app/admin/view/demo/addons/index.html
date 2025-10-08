@@ -1,0 +1,87 @@
+<template>
+    <el-affix target="#app">
+        <el-card shadow="always">
+            <el-button-group>
+                <el-button type="success" @click="showCode">查看源代码</el-button>
+            </el-button-group>
+        </el-card>
+    </el-affix>
+    <el-card shadow="always" style="margin-top: 10px">
+        <el-tabs v-model="activeTab">
+            <el-tab-pane label="腾讯地图选择位置坐标" name="qqmap">
+                {if !addons_installed('qqmap')}
+                <el-alert type="warning">请安装【腾讯地图选择位置坐标】插件</el-alert>
+                <br>
+                {else}
+                <yun-form ref="yunform" :columns='[{field:"latlng",title:"选择坐标",edit:{form:"slot",value:"26.6015,106.62254"}}]' action="demo/addons/add">
+                    <template #default>
+                        {:token_field()}
+                    </template>
+                    <template #latlng="{rows}">
+                        <el-form-item label="选择坐标:" prop="latlng">
+                            <Qqmap :value="rows.latlng" @change="changePosition"></Qqmap>
+                        </el-form-item>
+                    </template>
+                </yun-form>
+                {/if}
+            </el-tab-pane>
+            <el-tab-pane label="扫码绑定第三方账户" name="third">
+                {if !addons_installed('uniapp')}
+                <el-alert type="warning">请安装【uniapp开发脚手架】应用</el-alert>
+                <br>
+                {else}
+                <yun-form ref="yunform" :columns='[{field:"third_id", title: "绑定微信",edit:"slot",rules:"required"}]' action="demo/addons/add">
+                    <template #default>
+                        {:token_field()}
+                    </template>
+                    <template #third_id="{rows}">
+                        <el-form-item label="绑定微信:">
+                            <third :value="rows.third_id" placeholder="请选择扫码或选择微信" :multiple="true" platform="mpapp" :selectable="true" @change="changValue"></third>
+                        </el-form-item>
+                    </template>
+                </yun-form>
+                {/if}
+            </el-tab-pane>
+        </el-tabs>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    import qqmap from "@components/position/QqMap.js";
+    import third from "@components/Third.js";
+    export default{
+        components:{
+            'YunForm':form,
+            'Qqmap':qqmap,
+            'Third':third
+        },
+        data:{
+            activeTab:'qqmap'
+        },
+        onLoad:{
+
+        },
+        methods: {
+            changePosition:function (value){
+                this.$refs.yunform.setValue('latlng',value);
+            },
+            changValue:function (e){
+                this.$refs.yunform.setValue('third_id',e);
+            },
+            showCode:function (){
+                Yunqi.api.open({
+                    url:'demo/code/show?name=Addons',
+                    title:'显示代码',
+                    icon:'fa fa-list',
+                    expand:true,
+                    close:()=>{
+                        this.activeTab='qqmap';
+                    }
+                });
+            }
+        }
+    }
+</script>
+<style>
+
+</style>

@@ -292,27 +292,7 @@ class Develop extends Backend
                 $str=substr($str,0,strrpos($str,'/'));
                 $phppath='';
                 $callback='';
-                if (substr(php_uname(), 0, 7) == "Windows"){
-                    if(!function_exists('popen') || !function_exists('pclose')){
-                        $this->error(__('popen或pclose函数被禁用了'));
-                    }
-                    $phppath=substr($str,0,strrpos($str,'/')).DS.'bin'.DS.'php.exe';
-                    $callback=function ($cmd){
-                        pclose(popen($cmd,'r'));
-                    };
-                }
-                if (substr(php_uname(), 0, 5) == "Linux"){
-                    if(!function_exists('exec')){
-                        $this->error(__('exec函数被禁用了'));
-                    }
-                    $phppath=substr($str,0,strrpos($str,'/')).DS.'bin'.DS.'php';
-                    $callback=function ($cmd){
-                         $logpath=root_path()."queue.log";
-                         if(file_exists($logpath)){
-                             unlink($logpath);
-                         }
-                         exec("{$cmd} > {$logpath} &");
-                    };
+
                 }
                 if($phppath==''){
                     $this->error(__('当前操作仅支持windows或linux系统'));
@@ -329,7 +309,7 @@ class Develop extends Backend
                 file_put_contents($timetxt,0);
                 $this->success();
             }
-        }
+            
         $timetxt1=intval(file_get_contents($timetxt));
         sleep(2);
         $timetxt2=intval(file_get_contents($timetxt));

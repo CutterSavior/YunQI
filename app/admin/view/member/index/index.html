@@ -1,0 +1,34 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                toolbar="refresh"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    export default{
+        components:{'YunTable':table},
+        data:{
+            extend:{ index_url:'member/index/index' },
+            columns:[
+                {checkbox:true},
+                {field:'id',title:'ID',width:80,sortable:true},
+                {field:'name',title:'姓名'},
+                {field:'coin',title:'幣種'},
+                {field:'address',title:'地址'},
+                {field:'balance',title:'餘額'},
+                {field:'gender',title:'性別'},
+                {field:'realname',title:'實名'},
+                {field:'last_active',title:'最後上線'}
+            ]
+        }
+    }
+</script>
+<style>
+
+</style>
+
+
