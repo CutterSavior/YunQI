@@ -116,4 +116,10 @@ class Dashboard extends Backend
     {
         return $this->fetch();
     }
+
+    #[Route('GET','dashboard/platform3')]
+    public function platform3()
+    {
+        return $this->fetch();
+    }
 }

@@ -53,6 +53,16 @@ class Rule extends Backend
     public function add()
     {
         $this->beforeAction();
+        if($this->request->isPost()){
+            $isplatform=$this->request->post('row.isplatform');
+            $ismenu=$this->request->post('row.ismenu');
+            $title=$this->request->post('row.title');
+            
+            // 如果是頂部系統且為菜單，自動建立 platform 頁面
+            if($isplatform && $ismenu && $title){
+                $this->autoPlatformSetup($title);
+            }
+        }
         return $this->_add();
     }
 
@@ -60,7 +70,109 @@ class Rule extends Backend
     public function edit()
     {
         $this->beforeAction();
+        if($this->request->isPost()){
+            $id=$this->request->post('row.id');
+            $isplatform=$this->request->post('row.isplatform');
+            $ismenu=$this->request->post('row.ismenu');
+            $title=$this->request->post('row.title');
+            $oldRule=AuthRule::find($id);
+            
+            // 如果改為頂部系統且為菜單，自動建立 platform 頁面
+            if($isplatform && $ismenu && $title && (!$oldRule->isplatform || $oldRule->isplatform==0)){
+                $this->autoPlatformSetup($title, $id);
+            }
+        }
         return $this->_edit();
+    }
+
+    /**
+     * 自動設定頂部系統平台
+     */
+    private function autoPlatformSetup($platformName, $platformId = null)
+    {
+        try {
+            // 1. 查找現有最大的 platform 編號
+            $maxPlatform = Db::name('auth_rule')
+                ->where('controller', 'like', '%Dashboard%')
+                ->where('action', 'like', 'platform%')
+                ->order('action', 'desc')
+                ->value('action');
+            
+            $platformNum = 1;
+            if($maxPlatform && preg_match('/platform(\d+)/', $maxPlatform, $matches)){
+                $platformNum = intval($matches[1]) + 1;
+            }
+            
+            $platformMethod = 'platform' . $platformNum;
+            
+            // 2. 建立控制器方法
+            $controllerFile = app_path() . 'admin/controller/Dashboard.php';
+            if(file_exists($controllerFile)){
+                $content = file_get_contents($controllerFile);
+                // 檢查方法是否已存在
+                if(strpos($content, "public function {$platformMethod}()") === false){
+                    // 在最後一個 } 前插入新方法
+                    $newMethod = "\n    #[Route('GET','dashboard/{$platformMethod}')]\n";
+                    $newMethod .= "    public function {$platformMethod}()\n";
+                    $newMethod .= "    {\n";
+                    $newMethod .= "        return \$this->fetch();\n";
+                    $newMethod .= "    }\n";
+                    
+                    $content = preg_replace('/\n}\s*$/', $newMethod . "}\n", $content);
+                    file_put_contents($controllerFile, $content);
+                }
+            }
+            
+            // 3. 建立視圖檔案
+            $viewFile = app_path() . "admin/view/dashboard/{$platformMethod}.html";
+            if(!file_exists($viewFile)){
+                $viewContent = "<template>\n";
+                $viewContent .= "    <el-card shadow=\"never\">\n";
+                $viewContent .= "        <div style=\"text-align:center;padding:50px 0;\">\n";
+                $viewContent .= "            <h1>{$platformName} - 控制台</h1>\n";
+                $viewContent .= "            <p style=\"color:#999;margin-top:20px;\">歡迎來到{$platformName}管理平台</p>\n";
+                $viewContent .= "        </div>\n";
+                $viewContent .= "    </el-card>\n";
+                $viewContent .= "</template>\n";
+                $viewContent .= "<script>\n";
+                $viewContent .= "    export default{\n";
+                $viewContent .= "        data:{\n\n";
+                $viewContent .= "        },\n";
+                $viewContent .= "        methods: {\n\n";
+                $viewContent .= "        }\n";
+                $viewContent .= "    }\n";
+                $viewContent .= "</script>\n";
+                $viewContent .= "<style>\n\n";
+                $viewContent .= "</style>\n";
+                
+                file_put_contents($viewFile, $viewContent);
+            }
+            
+            // 4. 新增時自動建立首頁子菜單（編輯時不建立）
+            if($platformId === null){
+                // 先儲存父級菜單以獲取 ID
+                // 這會在 _add() 執行後，透過回調處理
+                $this->callback = function($rule) use ($platformMethod, $platformName) {
+                    // 建立首頁子菜單
+                    $homePage = new AuthRule();
+                    $homePage->pid = $rule->id;
+                    $homePage->title = '首頁';
+                    $homePage->controller = '\\app\\admin\\controller\\Dashboard';
+                    $homePage->action = $platformMethod;
+                    $homePage->ismenu = 1;
+                    $homePage->isplatform = 0;
+                    $homePage->menutype = 'tab';
+                    $homePage->icon = 'fa fa-home';
+                    $homePage->extend = json_encode(['url'=>"dashboard/{$platformMethod}.html"]);
+                    $homePage->status = 'normal';
+                    $homePage->save();
+                };
+            }
+            
+        } catch (\Exception $e) {
+            // 靜默失敗，不影響主流程
+            trace('自動建立 platform 失敗: ' . $e->getMessage(), 'error');
+        }
     }
 
     #[Route('GET,POST','del')]
