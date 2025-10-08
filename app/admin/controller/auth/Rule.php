@@ -233,6 +233,7 @@ class Rule extends Backend
                 $this->postParams['icon']='';
                 $this->postParams['extend']='';
                 $this->postParams['status']='';
+                $this->postParams['isplatform']=0;  // 規則不能是頂部系統
                 $actions=$this->request->post('row.actions');
                 if(!$actions){
                     $this->error(__('请填写方法列表'));
