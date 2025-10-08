@@ -1,0 +1,37 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                ref="yuntable"
+                :columns="columns"
+                toolbar="refresh"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    export default{
+        components:{'YunTable':table},
+        data:{
+            extend:{
+                index_url:'role/guard/index'
+            },
+            columns:[
+                {checkbox:true},
+                {field:'id',title:'ID',sortable:true,width:80},
+                {field:'name',title:'姓名'},
+                {field:'account',title:'帳號'},
+                {field:'personality',title:'性格'},
+                {field:'timeslot',title:'時段'},
+                {field:'avg_money',title:'平均金額'},
+                {field:'avg_speed',title:'平均速度'}
+            ]
+        }
+    }
+</script>
+<style>
+
+</style>
+
+
+
