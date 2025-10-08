@@ -21,7 +21,7 @@ use think\facade\Session;
 class Index extends Backend
 {
     protected $noNeedLogin = ['login','captcha','qrcodeLogin'];
-    protected $noNeedRight = ['index','logout','platform','changeTheme'];
+    protected $noNeedRight = ['index','logout','platform','changeTheme','changeLanguage'];
 
 
     #[Route('GET','index')]
@@ -61,6 +61,31 @@ class Index extends Backend
         $element_ui=json_encode($element_ui);
         Admin::update(['element_ui'=>$element_ui],['id'=>$this->auth->id]);
         Session::set('admin.element_ui',$element_ui);
+        Session::save();
+        $this->success();
+    }
+
+    #[Route('POST','change-language')]
+    public function changeLanguage()
+    {
+        $lang=$this->request->post('lang');
+        $allowLangs=array_keys(config('yunqi.language_list'));
+        if(!in_array($lang,$allowLangs)){
+            $this->error(__('不支持的语言'));
+        }
+        // 儲存到用戶設定
+        $element_ui=Admin::where('id',$this->auth->id)->value('element_ui');
+        if($element_ui){
+            $element_ui=json_decode($element_ui,true);
+        }else{
+            $element_ui=[];
+        }
+        $element_ui['language']=$lang;
+        $element_ui=json_encode($element_ui);
+        Admin::update(['element_ui'=>$element_ui],['id'=>$this->auth->id]);
+        // 設定 Session
+        Session::set('admin.element_ui',$element_ui);
+        Session::set('think_var_language',$lang);
         Session::save();
         $this->success();
     }

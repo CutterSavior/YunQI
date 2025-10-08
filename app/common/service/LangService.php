@@ -60,3 +60,4 @@ class LangService extends BaseService{
         return $this->lang;
     }
 }
+

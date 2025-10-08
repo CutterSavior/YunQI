@@ -6,12 +6,11 @@
 return [
     //支持语言包
     'language_list'    =>    [
-        'zh-cn'=>'中文简体',
         'zh-tw'=>'中文繁體',
         'en-us'=>'English'
     ],
     //默认语言包
-    'language'=>'zh-cn',
+    'language'=>'zh-tw',
     //登录验证码
     'login_captcha' => true,
     //登录失败超过10次则1天后重试

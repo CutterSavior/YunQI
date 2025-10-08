@@ -5,6 +5,8 @@ namespace app\common\service\msg;
 use app\common\service\MsgService;
 use app\common\model\Msg;
 
+
+
 class BackendMsg extends MsgService{
 
     protected $msg_type='backend';

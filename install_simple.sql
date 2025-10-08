@@ -74,3 +74,6 @@ INSERT INTO `auth_group` VALUES ('1', '0', '超级管理组', '*', '*', 'normal'
 SET FOREIGN_KEY_CHECKS=1;
 
 
+
+ 
+ 
