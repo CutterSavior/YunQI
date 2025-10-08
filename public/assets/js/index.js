@@ -103,7 +103,17 @@ export default{
             tabList:[],
             imageList:[],
             mainFrameExpand:false,
-            logo_img:''
+            logo_img:'',
+            menuHovered:false  // 滑鼠是否懸停在菜單上
+        }
+    },
+    computed:{
+        // 實際的菜單收合狀態（考慮滑鼠懸停）
+        menuActualCollapsed(){
+            if(this.elementUi.is_menu_collapse && this.menuHovered){
+                return false;  // 設定收合但滑鼠懸停時，展開菜單
+            }
+            return this.elementUi.is_menu_collapse;
         }
     },
     onLoad:function (){
@@ -246,6 +256,10 @@ export default{
         },
         changeSubMenu:function (menu){
             this.clickMenu(findTabsMenu(menu));
+        },
+        handleMenuHover:function(isHover){
+            // 處理滑鼠懸停事件
+            this.menuHovered = isHover;
         },
         clickMenu:function (menu){
             menu.id=menu.id || getUniqid();

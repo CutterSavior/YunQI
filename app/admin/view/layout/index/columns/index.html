@@ -16,9 +16,13 @@
             </div>
         </el-scrollbar>
     </div>
-    <el-aside v-show="documentWidth>600 || !elementUi.is_menu_collapse" :class="{ 'not-aside': !childMenuList.length }" :style="{ width: elementUi.is_menu_collapse ? '65px' : documentWidth>600 ? '210px':(documentWidth-2)+'px'}">
+    <el-aside v-show="documentWidth>600 || !elementUi.is_menu_collapse" 
+              :class="{ 'not-aside': !childMenuList.length }" 
+              :style="{ width: menuActualCollapsed ? '65px' : documentWidth>600 ? '210px':(documentWidth-2)+'px'}"
+              @mouseenter="handleMenuHover(true)" 
+              @mouseleave="handleMenuHover(false)">
         <div class="logo flx-center">
-            <template v-if="elementUi.is_menu_collapse">
+            <template v-if="menuActualCollapsed">
                 <span class="logo-text">{:mb_substr($site.sitename,0,1)}</span>
             </template>
             <template v-else>
@@ -29,7 +33,7 @@
             <el-menu
                     :default-active="activeTab?activeTab.id.toString():''"
                     :router="false"
-                    :collapse="elementUi.is_menu_collapse"
+                    :collapse="menuActualCollapsed"
                     :collapse-transition="false"
                     :unique-opened="true">
                     <Menulist :list="childMenuList" @onclickmenu="clickMenu"></Menulist>
